@@ -5,28 +5,27 @@ const ImpToken = artifacts.require("./token/ImpToken.sol");
 const ImpCore = artifacts.require("./core/ImpCore.sol");
 
 module.exports = function (deployer, network, accounts) {
-
+    Storage.setDevMode();
+    console.log("Owner:"+Storage.ownerAddress);
     const ownerAddress = Storage.ownerAddress;
 
     let impTokenInstance = null;
 
     let impCoreInstance = null;
 
-    ImpToken.deployed().then((instance) => {
+    return ImpToken.deployed().then((instance) => {
         impTokenInstance = instance;
-
         return ImpCore.deployed().then((instance) => {
             impCoreInstance = instance;
-
-            return impTokenInstance.distribute(impCoreInstance.address, Converter.getTokenValue(Storage.commonTokenAmount, Storage.tokenDecimals), {from: ownerAddress});
-        });
-
-    }).then((result) => {
-        return impTokenInstance.distribute(Storage.teamAccountAddress, Converter.getTokenValue(Storage.teamTokenAmount, Storage.tokenDecimals), {from: ownerAddress});
-    }).then((result) => {
-        return impTokenInstance.distribute(Storage.devAccountAddress, Converter.getTokenValue(Storage.devTokenAmount, Storage.tokenDecimals), {from: ownerAddress});
-    }).then((result) => {
-        return impTokenInstance.closeDistribution({from: ownerAddress});
-    });
-
+            return impTokenInstance.distribute(impCoreInstance.address, Converter.getTokenValue(Storage.commonTokenAmount, Storage.tokenDecimals), {from: ownerAddress}).then((result) => {
+                return impTokenInstance.distribute(Storage.teamAccountAddress, Converter.getTokenValue(Storage.teamTokenAmount, Storage.tokenDecimals), {from: ownerAddress}).then((result) => {
+                    return impTokenInstance.distribute(Storage.devAccountAddress, Converter.getTokenValue(Storage.devTokenAmount, Storage.tokenDecimals), {from: ownerAddress}).then((result) => {
+                        return impTokenInstance.distribute(Storage.stakingAccountAddress, Converter.getTokenValue(Storage.stakingTokenAmount, Storage.tokenDecimals), {from: ownerAddress}).then((result) => {
+                            return impTokenInstance.closeDistribution({from: ownerAddress});
+                        })
+                    })
+                })
+            })
+        })
+    })
 };

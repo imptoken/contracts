@@ -44,11 +44,10 @@ contract ImpToken is StandardToken, Ownable {
     function distribute(address toAddress, uint tokenAmount) external onlyOwner {
         require(!isDistributed);
 
-        balances[toAddress] = tokenAmount;
-
+        balances[toAddress] = balances[toAddress].add(tokenAmount);
         distributedAmount = distributedAmount.add(tokenAmount);
-
         require(distributedAmount <= totalSupply);
+        Transfer(address(0), toAddress, tokenAmount);
     }
 
     function closeDistribution() external onlyOwner {
